@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  openai-forward:
+    image: mmhk/openai-forward:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - "linux/amd64"
+
+  app:
+    image: mmhk/openai-forward:latest
+    restart: always
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_ORG_ID: ${OPENAI_ORG_ID}
+      OPENAI_PROJECT_ID: ${OPENAI_PROJECT_ID}
+      OPENAI_TARGET_BASE_URL: https://api.openai.com
+      PROXY_LISTEN_ADDR: :8080
+      PROXY_LOG_LEVEL: info
+    ports:
+      - "8080:8080"
