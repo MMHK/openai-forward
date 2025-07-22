@@ -8,6 +8,7 @@ services:
       dockerfile: Dockerfile
       platforms:
         - "linux/amd64"
+        - "linux/arm64"
 
   app:
     image: mmhk/openai-forward:latest
@@ -17,7 +18,13 @@ services:
       OPENAI_ORG_ID: ${OPENAI_ORG_ID}
       OPENAI_PROJECT_ID: ${OPENAI_PROJECT_ID}
       OPENAI_TARGET_BASE_URL: https://api.openai.com
+      PROXY_WEB_ROOT: /app/webroot
       PROXY_LISTEN_ADDR: :8080
-      PROXY_LOG_LEVEL: info
+      PROXY_LOG_LEVEL: debug
     ports:
       - "8080:8080"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

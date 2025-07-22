@@ -52,7 +52,9 @@ func (p *OpenAIProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		req.Header.Del("X-Real-IP")
 
 		// 设置认证信息
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.config.APIKey))
+		if p.config.APIKey != "" {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.config.APIKey))
+		}
 		if p.config.OrgID != "" {
 			req.Header.Set("OpenAI-Organization", p.config.OrgID)
 		}

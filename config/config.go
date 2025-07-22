@@ -14,6 +14,7 @@ type Config struct {
 	ProjectID     string
 	ListenAddr    string
 	LogLevel      string
+	WebRoot       string
 }
 
 // LoadConfig 加载配置
@@ -28,6 +29,7 @@ func LoadConfig() (*Config, error) {
 		ProjectID:     getEnv("OPENAI_PROJECT_ID", ""),
 		ListenAddr:    getEnv("PROXY_LISTEN_ADDR", ":8080"),
 		LogLevel:      getEnv("PROXY_LOG_LEVEL", "info"),
+		WebRoot:       getEnv("PROXY_WEB_ROOT", ""),
 	}, nil
 }
 

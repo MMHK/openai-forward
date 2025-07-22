@@ -24,12 +24,14 @@ WORKDIR /app
 
 # 复制构建好的二进制文件和配置文件
 COPY --from=builder /openai-forward .
+COPY ./webroot /app/webroot
 
 ENV OPENAI_API_KEY= \
     OPENAI_ORG_ID= \
     OPENAI_PROJECT_ID= \
     OPENAI_TARGET_BASE_URL=https://api.openai.com \
     PROXY_LISTEN_ADDR=:8080 \
+    PROXY_WEB_ROOT=/app/webroot \
     PROXY_LOG_LEVEL=info
 
 # 暴露代理服务端口

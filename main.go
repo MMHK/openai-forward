@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -33,6 +34,23 @@ func main() {
 			"method": r.Method,
 			"url":    r.URL.String(),
 		}).Debug("Received request")
+
+		// 尝试查找静态文件
+		filePath := fmt.Sprintf("%s%s", cfg.WebRoot, r.URL.Path)
+		if cfg.WebRoot != "" {
+			localPath := r.URL.Path
+			if r.URL.Path == "/" || r.URL.Path == "" {
+				localPath = "index.html"
+			}
+			// 检查文件是否存在
+			file, err := http.Dir(cfg.WebRoot).Open(localPath)
+			if err == nil {
+				defer file.Close()
+				// 文件存在，正常提供静态文件
+				http.ServeFile(w, r, filePath)
+				return
+			}
+		}
 
 		reverseProxy.ServeHTTP(w, r)
 	})
