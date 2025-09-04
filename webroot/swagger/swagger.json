@@ -1,0 +1,278 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OpenAI Forward API",
+    "description": "OpenAI API代理服务，提供对OpenAI API的安全访问和转发",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3005",
+      "description": "本地开发服务器"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "重定向到UI界面",
+        "description": "将根路径请求重定向到UI首页",
+        "responses": {
+          "301": {
+            "description": "重定向到 /ui/index.html"
+          }
+        }
+      }
+    },
+    "/openai/{pathname}": {
+      "get": {
+        "summary": "OpenAI API代理 - GET方法",
+        "description": "代理所有对OpenAI API的GET请求",
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "OpenAI API代理 - POST方法",
+        "description": "代理所有对OpenAI API的POST请求",
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "请求体内容",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "OpenAI API请求参数"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "OpenAI API代理 - PUT方法",
+        "description": "代理所有对OpenAI API的PUT请求",
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "请求体内容",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "OpenAI API请求参数"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "OpenAI API代理 - DELETE方法",
+        "description": "代理所有对OpenAI API的DELETE请求",
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth": {
+      "get": {
+        "summary": "OAuth认证入口",
+        "description": "启动OAuth认证流程",
+        "parameters": [
+          {
+            "name": "redirect",
+            "in": "query",
+            "description": "认证成功后的重定向URL",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "重定向到OAuth提供商"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/callback": {
+      "get": {
+        "summary": "OAuth回调",
+        "description": "处理OAuth提供商的回调，生成临时API密钥",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "description": "OAuth授权码",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "返回临时API密钥",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StdAPIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "认证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "StdAPIResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "请求状态"
+          },
+          "data": {
+            "type": "object",
+            "description": "响应数据"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "请求状态"
+          },
+          "error": {
+            "type": "string",
+            "description": "错误信息"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "API密钥需要在Authorization头部中提供，格式为: Bearer {api_key}"
+      }
+    }
+  }
+}
