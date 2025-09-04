@@ -15,4 +15,17 @@ func init() {
 	Logger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
+	levelFromENV := os.Getenv("PROXY_LOG_LEVEL")
+	switch levelFromENV {
+	case "debug":
+		Logger.SetLevel(logrus.DebugLevel)
+	case "warn":
+		Logger.SetLevel(logrus.WarnLevel)
+	case "error":
+		Logger.SetLevel(logrus.ErrorLevel)
+	case "fatal":
+		Logger.SetLevel(logrus.FatalLevel)
+	default:
+		Logger.SetLevel(logrus.InfoLevel)
+	}
 }
