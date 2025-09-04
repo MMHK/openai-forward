@@ -1,14 +1,16 @@
 package http
 
 import (
-	"azure-extract-excel/tests"
+	"openai-forward/test"
+	"os"
 	"testing"
 	"time"
 )
 
 func GetTestKeyManager() *APIKeyManager {
-	db, _ := NewDB(":memory:")
-	return NewAPIKeyManager(db)
+	dsn := os.Getenv("HTTP_DB_DSN")
+	storage, _ := NewDB(dsn)
+	return NewAPIKeyManager(storage)
 }
 
 func TestAPIKey_IsValid(t *testing.T) {
@@ -121,14 +123,14 @@ func TestAPIKeyManager_CleanupExpiredKeys(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to generate temporary key: %v", err)
 	}
-	t.Log(tests.ToJSON(expiredKey))
+	t.Log(test.ToJSON(expiredKey))
 
 	// 创建一个未过期的密钥
 	validKey, err := manager.GenerateTemporaryKey(time.Hour)
 	if err != nil {
 		t.Fatalf("Failed to generate temporary key: %v", err)
 	}
-	t.Log(tests.ToJSON(validKey))
+	t.Log(test.ToJSON(validKey))
 	// 清理过期密钥
 	count := manager.CleanupExpiredKeys()
 
