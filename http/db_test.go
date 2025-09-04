@@ -1,14 +1,36 @@
 package http
 
 import (
+	"errors"
+	"openai-forward/logging"
 	"openai-forward/test"
+	"os"
 	"testing"
 	"time"
 )
 
+func GetTestDB() *DB {
+	dsn := os.Getenv("HTTP_DB_DSN")
+	storage, err := NewDB(dsn)
+	if err != nil {
+		logging.Logger.Errorf("Failed to create database: %v", err)
+		panic(err)
+	}
+	db, ok := storage.(*DB)
+	if ok {
+		return db
+	}
+	err = errors.New("Failed to create database")
+	panic(err)
+}
+
 func TestDB_NewDB(t *testing.T) {
 	// 测试创建数据库实例
-	db, err := NewDB(":memory:")
+	dsn := os.Getenv("HTTP_DB_DSN")
+
+	t.Logf("dsn:%s", dsn)
+
+	db, err := NewDB(dsn)
 	if err != nil {
 		t.Fatalf("Failed to create database: %v", err)
 	}
@@ -24,10 +46,7 @@ func TestDB_NewDB(t *testing.T) {
 
 func TestDB_SaveAndRetrieveAPIKey(t *testing.T) {
 	// 测试保存和获取API密钥
-	db, err := NewDB(":memory:")
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
+	db := GetTestDB()
 	defer db.Close()
 
 	// 创建一个测试API密钥
@@ -40,7 +59,7 @@ func TestDB_SaveAndRetrieveAPIKey(t *testing.T) {
 	}
 
 	// 保存API密钥
-	err = db.SaveAPIKey(apiKey)
+	err := db.SaveAPIKey(apiKey)
 	if err != nil {
 		t.Fatalf("Failed to save API key: %v", err)
 	}
@@ -65,12 +84,12 @@ func TestDB_SaveAndRetrieveAPIKey(t *testing.T) {
 	if retrievedKey.Type != TEMPORARY_KEY {
 		t.Errorf("Expected type 'temporary', got '%s'", retrievedKey.Type)
 	}
-
-	if retrievedKey.CreatedAt.Unix() != now.Unix() {
+	// 更精确的时间比较方式
+	if retrievedKey.CreatedAt.Sub(now).Abs() > time.Second {
 		t.Errorf("CreatedAt mismatch: expected %v, got %v", now, retrievedKey.CreatedAt)
 	}
 
-	if retrievedKey.ExpireAt.Unix() != now.Add(time.Hour).Unix() {
+	if retrievedKey.ExpireAt.Sub(now.Add(time.Hour)).Abs() > time.Second {
 		t.Errorf("ExpireAt mismatch: expected %v, got %v", now.Add(time.Hour), retrievedKey.ExpireAt)
 	}
 }
@@ -97,10 +116,7 @@ func TestDB_GetNonExistentAPIKey(t *testing.T) {
 
 func TestDB_DeleteExpiredAPIKeys(t *testing.T) {
 	// 测试删除过期的API密钥
-	db, err := NewDB(":memory:")
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
+	db := GetTestDB()
 	defer db.Close()
 
 	// 创建一个过期的API密钥
@@ -120,7 +136,7 @@ func TestDB_DeleteExpiredAPIKeys(t *testing.T) {
 	}
 
 	// 保存两个密钥
-	err = db.SaveAPIKey(expiredKey)
+	err := db.SaveAPIKey(expiredKey)
 	if err != nil {
 		t.Fatalf("Failed to save expired key: %v", err)
 	}
@@ -162,10 +178,7 @@ func TestDB_DeleteExpiredAPIKeys(t *testing.T) {
 
 func TestDB_SaveAPIKeyReplace(t *testing.T) {
 	// 测试重复保存API密钥应该替换已有密钥
-	db, err := NewDB(":memory:")
-	if err != nil {
-		t.Fatalf("Failed to create database: %v", err)
-	}
+	db := GetTestDB()
 	defer db.Close()
 
 	// 创建初始API密钥
@@ -177,7 +190,7 @@ func TestDB_SaveAPIKeyReplace(t *testing.T) {
 	}
 
 	// 保存初始密钥
-	err = db.SaveAPIKey(initialKey)
+	err := db.SaveAPIKey(initialKey)
 	if err != nil {
 		t.Fatalf("Failed to save initial key: %v", err)
 	}

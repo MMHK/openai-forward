@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	_ "modernc.org/sqlite"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // IStorage 定义存储接口，用于抽象数据持久化操作
@@ -24,8 +24,8 @@ type DB struct {
 }
 
 // NewDB 创建数据库实例
-func NewDB(dataSourceName string) (IStorage, error) {
-	database, err := sql.Open("sqlite", dataSourceName)
+func NewDB(dsn string) (IStorage, error) {
+	database, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -45,30 +45,14 @@ func NewDB(dataSourceName string) (IStorage, error) {
 func (db *DB) initTables() error {
 	// 创建API密钥表
 	apiKeyTableSQL := `
-	CREATE TABLE IF NOT EXISTS api_keys (
-		key TEXT PRIMARY KEY,
-		type TEXT NOT NULL,
-		created_at DATETIME NOT NULL,
-		expire_at DATETIME NOT NULL
-	);`
+CREATE TABLE IF NOT EXISTS api_keys (
+	api_key VARCHAR(512) PRIMARY KEY,
+	api_type VARCHAR(64) NOT NULL,
+	created_at DATETIME NOT NULL,
+	expire_at DATETIME NOT NULL
+);`
 
 	_, err := db.db.Exec(apiKeyTableSQL)
-	if err != nil {
-		return err
-	}
-
-	// 创建任务表
-	taskTableSQL := `
-	CREATE TABLE IF NOT EXISTS tasks (
-		id TEXT PRIMARY KEY,
-		status TEXT NOT NULL,
-		result TEXT,
-		error TEXT,
-		created_at DATETIME NOT NULL,
-		updated_at DATETIME NOT NULL
-	);`
-
-	_, err = db.db.Exec(taskTableSQL)
 	if err != nil {
 		return err
 	}
@@ -79,8 +63,12 @@ func (db *DB) initTables() error {
 // SaveAPIKey 保存API密钥到数据库
 func (db *DB) SaveAPIKey(apiKey *APIKey) error {
 	sqlStmt := `
-	INSERT OR REPLACE INTO api_keys (key, type, created_at, expire_at)
+	INSERT INTO api_keys (api_key, api_type, created_at, expire_at)
 	VALUES (?, ?, ?, ?)
+	ON DUPLICATE KEY UPDATE
+	api_type = VALUES(api_type),
+	created_at = VALUES(created_at),
+	expire_at = VALUES(expire_at)
 	`
 
 	_, err := db.db.Exec(sqlStmt, apiKey.Key, string(apiKey.Type), apiKey.CreatedAt, apiKey.ExpireAt)
@@ -90,9 +78,9 @@ func (db *DB) SaveAPIKey(apiKey *APIKey) error {
 // GetAPIKey 从数据库获取API密钥
 func (db *DB) GetAPIKey(key string) (*APIKey, error) {
 	sqlStmt := `
-	SELECT key, type, created_at, expire_at
+	SELECT api_key, api_type, created_at, expire_at
 	FROM api_keys
-	WHERE key = ?
+	WHERE api_key = ?
 	`
 
 	row := db.db.QueryRow(sqlStmt, key)
