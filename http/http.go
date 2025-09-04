@@ -33,24 +33,19 @@ type HTTPConfig struct {
 }
 
 func (this *HTTPConfig) MarginWithENV() {
-	conf := &HTTPConfig{
-		ListenAddr: ":3005",
-		StaticDir:  "./webroot",
-	}
-
 	envListenAddr := os.Getenv("HTTP_LISTEN_ADDR")
 	if envListenAddr != "" {
-		conf.ListenAddr = envListenAddr
+		this.ListenAddr = envListenAddr
 	}
 
 	envStaticDir := os.Getenv("HTTP_STATIC_DIR")
 	if envStaticDir != "" {
-		conf.StaticDir = envStaticDir
+		this.StaticDir = envStaticDir
 	}
 
 	dsn := os.Getenv("HTTP_DB_DSN")
 	if dsn != "" {
-		conf.DSN = dsn
+		this.DSN = dsn
 	}
 }
 
