@@ -26,10 +26,10 @@ type HTTPConfig struct {
 	ListenAddr string `json:"listen_addr"`
 	// StaticDir 静态文件目录，默认为"./webroot"
 	StaticDir string `json:"static_dir"`
-	// DBPath 数据库文件路径，默认"./db.sqlite3"
-	DBPath string `json:"db_path"`
 	// EnableAuth 是否启用认证
 	EnableAuth bool `json:"enable_auth"`
+	// DSN 数据库连接字符串
+	DSN string `json:"dsn"`
 }
 
 func (this *HTTPConfig) MarginWithENV() {
@@ -48,9 +48,9 @@ func (this *HTTPConfig) MarginWithENV() {
 		conf.StaticDir = envStaticDir
 	}
 
-	dbPath := os.Getenv("HTTP_DB_PATH")
-	if dbPath != "" {
-		conf.DBPath = dbPath
+	dsn := os.Getenv("HTTP_DB_DSN")
+	if dsn != "" {
+		conf.DSN = dsn
 	}
 }
 
@@ -86,7 +86,7 @@ type ErrorResponse struct {
 // NewServer 创建HTTP服务实例
 func NewServer(config *HTTPConfig) *Server {
 	// 创建数据库连接
-	storage, err := NewDB(config.DBPath)
+	storage, err := NewDB(config.DSN)
 	if err != nil {
 		logging.Logger.Errorf("Failed to initialize database: %v", err)
 		// 如果数据库初始化失败，继续使用内存存储
@@ -158,14 +158,14 @@ func (s *Server) Start() error {
 	}
 	proxyHandle := proxy.NewOpenAIProxy(porxyConf)
 
-	r.HandleFunc("/openai/", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("/openai/", s.authMiddleware.AuthRequired(func(w http.ResponseWriter, r *http.Request) {
 		logging.Logger.WithFields(logrus.Fields{
 			"method": r.Method,
 			"url":    r.URL.String(),
 		}).Debug("Received request")
 
 		proxyHandle.ServeHTTP(w, r)
-	})
+	}))
 
 	// API路由组
 	// 任务查询接口，需要临时API密钥认证

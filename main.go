@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	httpService "openai-forward/http"
 	"openai-forward/logging"

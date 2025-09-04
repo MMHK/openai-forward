@@ -18,6 +18,8 @@ func init() {
 	testLogger.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp: true,
 	})
+
+	loadTestEnv()
 }
 
 func loadTestEnv() {
