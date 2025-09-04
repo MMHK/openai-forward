@@ -3,61 +3,42 @@ package main
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
-
-	"openai-forward/config"
+	httpService "openai-forward/http"
 	"openai-forward/logging"
-	"openai-forward/proxy"
+	"os"
+	"os/signal"
+	"runtime"
+	"syscall"
 )
 
 func main() {
-	// 加载配置
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		logging.Logger.WithError(err).Fatal("Failed to load config")
-	}
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	// 创建代理
-	reverseProxy := proxy.NewOpenAIProxy(cfg)
+	conf := &httpService.HTTPConfig{}
+	conf.MarginWithENV()
 
-	// 设置日志级别
-	if cfg.LogLevel == "debug" {
-		logging.Logger.SetLevel(logrus.DebugLevel)
-	} else {
-		logging.Logger.SetLevel(logrus.InfoLevel)
-	}
+	logging.Logger.Debug("show config detail:")
+	logging.Logger.Debug(conf.ToJSON())
 
-	// 设置处理函数
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		logging.Logger.WithFields(logrus.Fields{
-			"method": r.Method,
-			"url":    r.URL.String(),
-		}).Debug("Received request")
+	server := httpService.NewServer(conf)
 
-		// 尝试查找静态文件
-		filePath := fmt.Sprintf("%s%s", cfg.WebRoot, r.URL.Path)
-		if cfg.WebRoot != "" {
-			localPath := r.URL.Path
-			if r.URL.Path == "/" || r.URL.Path == "" {
-				localPath = "index.html"
-			}
-			// 检查文件是否存在
-			file, err := http.Dir(cfg.WebRoot).Open(localPath)
-			if err == nil {
-				defer file.Close()
-				// 文件存在，正常提供静态文件
-				http.ServeFile(w, r, filePath)
-				return
-			}
+	// 启动服务在goroutine中
+	go func() {
+		if err := server.Start(); err != nil && err != http.ErrServerClosed {
+			logging.Logger.Errorf("Failed to start HTTP server: %v", err)
+			os.Exit(1)
 		}
+	}()
 
-		reverseProxy.ServeHTTP(w, r)
-	})
+	// 等待中断信号以优雅地关闭服务器
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
 
-	// 启动服务器
-	logging.Logger.Infof("Starting proxy server on %s", cfg.ListenAddr)
-	if err := http.ListenAndServe(cfg.ListenAddr, nil); err != nil {
-		logging.Logger.WithError(err).Fatal("Failed to start server")
+	logging.Logger.Info("Shutting down server...")
+	if err := server.Stop(); err != nil {
+		logging.Logger.Errorf("Server forced to shutdown: %v", err)
 	}
+
+	logging.Logger.Info("Server exiting")
 }
