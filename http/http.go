@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"openai-forward/config"
 	"openai-forward/logging"
@@ -133,6 +132,34 @@ func (s *Server) NotFoundHandle(writer http.ResponseWriter, request *http.Reques
 	s.ResponseError(fmt.Errorf("404 Not Found"), writer)
 }
 
+func (s *Server) HandleOpenAIProxy(w http.ResponseWriter, r *http.Request) {
+	logging.Logger.Debugf("Received request to openai proxy")
+	defer logging.Logger.Debugf("Finished request to openai proxy")
+
+	porxyConf, err := config.LoadConfig()
+	if err != nil {
+		logging.Logger.Errorf("Failed to load config: %v", err)
+		s.ResponseError(err, w)
+		return
+	}
+	proxyHandle := proxy.NewOpenAIProxy(porxyConf)
+
+	proxyHandle.ServeHTTP(w, r)
+}
+
+func (s *Server) HandleAzureOpenAIProxy(w http.ResponseWriter, r *http.Request) {
+	logging.Logger.Debugf("Received request to azure openai proxy")
+	defer logging.Logger.Debugf("Finished request to azure openai proxy")
+
+	cfg := proxy.NewAzureConfigFromENV()
+	azureProxy, err := proxy.NewAzureProxy(cfg)
+	if err != nil {
+		logging.Logger.Errorf("Failed to load azure config: %v", err)
+		s.ResponseError(err, w)
+	}
+	azureProxy.ProxyRequest(w, r)
+}
+
 // Start 启动HTTP服务
 func (s *Server) Start() error {
 	// 配置静态文件服务
@@ -146,21 +173,8 @@ func (s *Server) Start() error {
 
 	apiRouter := r.PathPrefix("/api/v1").Subrouter()
 
-	porxyConf, err := config.LoadConfig()
-	if err != nil {
-		logging.Logger.Errorf("Failed to load config: %v", err)
-		return err
-	}
-	proxyHandle := proxy.NewOpenAIProxy(porxyConf)
-
-	r.HandleFunc("/openai/", s.authMiddleware.AuthRequired(func(w http.ResponseWriter, r *http.Request) {
-		logging.Logger.WithFields(logrus.Fields{
-			"method": r.Method,
-			"url":    r.URL.String(),
-		}).Debug("Received request")
-
-		proxyHandle.ServeHTTP(w, r)
-	}))
+	r.PathPrefix("/openai/").Handler(s.authMiddleware.AuthRequired(s.HandleOpenAIProxy))
+	r.PathPrefix("/azure/").Handler(s.authMiddleware.AuthRequired(s.HandleAzureOpenAIProxy))
 
 	// API路由组
 	// 任务查询接口，需要临时API密钥认证

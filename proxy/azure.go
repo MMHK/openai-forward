@@ -104,26 +104,39 @@ func (p *AzureProxy) buildTargetURL(requestPath string, queryParams url.Values, 
 	deploymentID := p.getDeploymentID(modelName)
 
 	// 构建Azure OpenAI的路径
-	// 格式: /openai/deployments/{deployment-id}/{path}?api-version={api-version}
-	newPath := path.Join("/openai/deployments", deploymentID, requestPath)
+	// 格式: /v1/openai/deployments/{deployment-id}/{path}?api-version={api-version}
+	newPath := path.Join("/v1/openai/deployments", deploymentID, requestPath)
 	endpoint.Path = newPath
 
-	// 添加api-version查询参数
+	// 覆蓋 api-version 查询参数
+	queryParams.Set("api-version", p.config.APIVersion)
 	query := queryParams.Encode()
-	if query != "" {
-		endpoint.RawQuery = query + "&api-version=" + p.config.APIVersion
-	} else {
-		endpoint.RawQuery = "api-version=" + p.config.APIVersion
-	}
+	endpoint.RawQuery = query
 
 	return endpoint.String(), nil
+}
+
+type AzureChatCompleteRequest struct {
+	Model string `json:"model"`
 }
 
 // 从请求体中提取模型名称（简化实现）
 func (p *AzureProxy) extractModelName(body []byte) string {
 	// 这里应该解析JSON请求体并提取模型名称
 	// 简化起见，返回一个默认值
-	return "default-model"
+	var req AzureChatCompleteRequest
+	err := json.Unmarshal(body, &req)
+	if err != nil {
+		logging.Logger.Errorf("Failed to unmarshal request body: %v", err)
+
+		return p.config.DefaultModel
+	}
+
+	if req.Model != "" {
+		return p.config.DefaultModel
+	}
+
+	return req.Model
 }
 
 func (p *AzureProxy) ProxyRequest(w http.ResponseWriter, r *http.Request) {
@@ -180,6 +193,7 @@ func (p *AzureProxy) ProxyRequest(w http.ResponseWriter, r *http.Request) {
 	_, err = io.Copy(w, resp.Body)
 	if err != nil {
 		// 错误已经发生，只能记录日志（如果有的话）
+		logging.Logger.Errorf("Failed to copy response body: %v", err)
 		return
 	}
 }

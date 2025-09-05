@@ -16,6 +16,7 @@
       "get": {
         "summary": "重定向到UI界面",
         "description": "将根路径请求重定向到UI首页",
+        "tags": ["Proxy"],
         "responses": {
           "301": {
             "description": "重定向到 /ui/index.html"
@@ -27,6 +28,7 @@
       "get": {
         "summary": "OpenAI API代理 - GET方法",
         "description": "代理所有对OpenAI API的GET请求",
+        "tags": ["Proxy"],
         "parameters": [
           {
             "name": "pathname",
@@ -59,6 +61,7 @@
       "post": {
         "summary": "OpenAI API代理 - POST方法",
         "description": "代理所有对OpenAI API的POST请求",
+        "tags": ["Proxy"],
         "parameters": [
           {
             "name": "pathname",
@@ -102,6 +105,7 @@
       "put": {
         "summary": "OpenAI API代理 - PUT方法",
         "description": "代理所有对OpenAI API的PUT请求",
+        "tags": ["Proxy"],
         "parameters": [
           {
             "name": "pathname",
@@ -145,6 +149,7 @@
       "delete": {
         "summary": "OpenAI API代理 - DELETE方法",
         "description": "代理所有对OpenAI API的DELETE请求",
+        "tags": ["Proxy"],
         "parameters": [
           {
             "name": "pathname",
@@ -175,10 +180,167 @@
         }
       }
     },
+    "/azure/{pathname}": {
+      "get": {
+        "summary": "Azure OpenAI API代理 - GET方法",
+        "description": "代理所有对Azure OpenAI API的GET请求",
+        "tags": ["Proxy"],
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "Azure OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Azure OpenAI API代理 - POST方法",
+        "description": "代理所有对Azure OpenAI API的POST请求",
+        "tags": ["Proxy"],
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "Azure OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "请求体内容",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Azure OpenAI API请求参数"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Azure OpenAI API代理 - PUT方法",
+        "description": "代理所有对Azure OpenAI API的PUT请求",
+        "tags": ["Proxy"],
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "Azure OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "请求体内容",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Azure OpenAI API请求参数"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Azure OpenAI API代理 - DELETE方法",
+        "description": "代理所有对Azure OpenAI API的DELETE请求",
+        "tags": ["Proxy"],
+        "parameters": [
+          {
+            "name": "pathname",
+            "in": "path",
+            "description": "Azure OpenAI API路径",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth": {
       "get": {
         "summary": "OAuth认证入口",
         "description": "启动OAuth认证流程",
+        "tags": ["OAuth"],
         "parameters": [
           {
             "name": "redirect",
@@ -201,6 +363,7 @@
       "get": {
         "summary": "OAuth回调",
         "description": "处理OAuth提供商的回调，生成临时API密钥",
+        "tags": ["OAuth"],
         "parameters": [
           {
             "name": "code",
