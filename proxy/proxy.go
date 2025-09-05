@@ -1,11 +1,13 @@
 package proxy
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"openai-forward/config"
+	"openai-forward/logging"
 )
 
 // ErrorResponse 定义了统一的错误响应结构
@@ -66,4 +68,50 @@ func (p *OpenAIProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 创建反向代理并处理请求
 	proxy := &httputil.ReverseProxy{Director: director}
 	proxy.ServeHTTP(w, r)
+}
+
+type Model struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Created int    `json:"created"`
+	OwnedBy string `json:"owned_by"`
+}
+
+type ModelsResponse struct {
+	Object string   `json:"object"`
+	Data   []*Model `json:"data"`
+}
+
+func (p *OpenAIProxy) ListAvailableModels() []string {
+	req, err := http.NewRequest("GET", p.config.TargetBaseURL+"/v1/models", nil)
+	if err != nil {
+		logging.Logger.Errorf("Failed to create request: %v", err)
+		return []string{}
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", p.config.APIKey))
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		logging.Logger.Errorf("Failed to send request: %v", err)
+		return []string{}
+	}
+	defer resp.Body.Close()
+
+	var modelResp ModelsResponse
+	err = json.NewDecoder(resp.Body).Decode(&modelResp)
+	if err != nil {
+		logging.Logger.Errorf("Failed to decode response: %v", err)
+		return []string{}
+	}
+	list := []string{}
+
+	//logging.Logger.Infof("Models: %+v", modelResp.Data)
+
+	for _, model := range modelResp.Data {
+		for _, whiteListModel := range p.config.ModelsWhiteList {
+			if model.ID == whiteListModel {
+				list = append(list, model.ID)
+			}
+		}
+	}
+	return list
 }

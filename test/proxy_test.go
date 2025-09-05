@@ -16,6 +16,14 @@ func init() {
 	loadTestEnv()
 }
 
+func GetTestProxy() *proxy.OpenAIProxy {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		panic(err)
+	}
+	return proxy.NewOpenAIProxy(cfg)
+}
+
 func TestOpenAIProxy(t *testing.T) {
 	testAPIKey := os.Getenv("OPENAI_API_KEY")
 	testOrgID := os.Getenv("OPENAI_ORG_ID")
@@ -59,4 +67,12 @@ func TestOpenAIProxy(t *testing.T) {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, w.Code)
 		t.Error(w.Body.String())
 	}
+}
+
+func TestOpenAIProxy_ListAvailableModels(t *testing.T) {
+	proxyInstance := GetTestProxy()
+
+	models := proxyInstance.ListAvailableModels()
+
+	t.Log(ToJSON(models))
 }

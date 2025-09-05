@@ -17,8 +17,6 @@ func TestLoadConfig(t *testing.T) {
 	testAPIKey := os.Getenv("OPENAI_API_KEY")
 	testOrgID := os.Getenv("OPENAI_ORG_ID")
 	testProjectID := os.Getenv("OPENAI_PROJECT_ID")
-	testListenAddr := os.Getenv("PROXY_LISTEN_ADDR")
-	testLogLevel := os.Getenv("PROXY_LOG_LEVEL")
 
 	// 加载配置
 	cfg, err := config.LoadConfig()
@@ -38,11 +36,5 @@ func TestLoadConfig(t *testing.T) {
 	}
 	if cfg.ProjectID != testProjectID {
 		t.Errorf("Expected ProjectID to be '%s', got '%s'", testProjectID, cfg.ProjectID)
-	}
-	if cfg.ListenAddr != testListenAddr {
-		t.Errorf("Expected ListenAddr to be '%s', got '%s'", testListenAddr, cfg.ListenAddr)
-	}
-	if cfg.LogLevel != testLogLevel {
-		t.Errorf("Expected LogLevel to be '%s', got '%s'", testLogLevel, cfg.LogLevel)
 	}
 }

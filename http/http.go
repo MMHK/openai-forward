@@ -160,6 +160,28 @@ func (s *Server) HandleAzureOpenAIProxy(w http.ResponseWriter, r *http.Request) 
 	azureProxy.ProxyRequest(w, r)
 }
 
+func (s *Server) HandleOpenAIAvailableModels(w http.ResponseWriter, r *http.Request) {
+	porxyConf, err := config.LoadConfig()
+	if err != nil {
+		logging.Logger.Errorf("Failed to load config: %v", err)
+		s.ResponseError(err, w)
+		return
+	}
+	proxyHandle := proxy.NewOpenAIProxy(porxyConf)
+
+	s.ResponseJSON(proxyHandle.ListAvailableModels(), w)
+}
+
+func (s *Server) HandleAzureOpenAIAvailableModels(w http.ResponseWriter, r *http.Request) {
+	azureProxy, err := proxy.NewAzureProxy(proxy.NewAzureConfigFromENV())
+	if err != nil {
+		logging.Logger.Errorf("Failed to load azure config: %v", err)
+		s.ResponseError(err, w)
+		return
+	}
+	s.ResponseJSON(azureProxy.ListModels(), w)
+}
+
 // Start 启动HTTP服务
 func (s *Server) Start() error {
 	// 配置静态文件服务
@@ -180,6 +202,8 @@ func (s *Server) Start() error {
 	// 任务查询接口，需要临时API密钥认证
 	apiRouter.HandleFunc("/auth", s.handleOAuth).Methods("GET")
 	apiRouter.HandleFunc("/auth/callback", s.handleOAuthCallback).Methods("GET")
+	apiRouter.HandleFunc("/openai/models", s.HandleOpenAIAvailableModels).Methods("GET")
+	apiRouter.HandleFunc("/azure/models", s.HandleAzureOpenAIAvailableModels).Methods("GET")
 
 	r.HandleFunc("/", s.RedirectUI)
 	r.PathPrefix("/").Handler(http.StripPrefix("/",

@@ -398,6 +398,64 @@
           }
         }
       }
+    },
+    "/api/v1/openai/models": {
+      "get": {
+        "summary": "获取OpenAI可用模型列表",
+        "description": "获取当前OpenAI服务中可用的模型列表",
+        "tags": ["Models"],
+        "responses": {
+          "200": {
+            "description": "成功返回模型列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StdAPIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "认证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/azure/models": {
+      "get": {
+        "summary": "获取Azure OpenAI可用模型列表",
+        "description": "获取当前Azure OpenAI服务中可用的模型列表",
+        "tags": ["Models"],
+        "responses": {
+          "200": {
+            "description": "成功返回模型列表",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StdAPIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "认证失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

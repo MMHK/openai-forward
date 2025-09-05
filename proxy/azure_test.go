@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"openai-forward/test"
 	_ "openai-forward/test"
 	"os"
 	"testing"
@@ -190,6 +191,8 @@ func TestAzureProxy_ListModels(t *testing.T) {
 	if len(models) != 3 {
 		t.Errorf("Expected 3 models, got %d", len(models))
 	}
+
+	t.Log(test.ToJSON(models))
 
 	// 检查是否包含所有模型
 	expectedModels := []string{"gpt-3.5-turbo", "gpt-4", "text-embedding"}
