@@ -1,0 +1,14 @@
+.tailwind body.font-sans {
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", "Arial", "Helvetica", "Noto Sans SC", "Noto Sans", "Microsoft JhengHei""PMingLiU", "STHeiti", "微軟正黑體", "蘋果儷中黑", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+:where([class^="ri-"])::before {
+  content: "\f3c2";
+}
+.tailwind {
+  .hero-section {
+    background-image: url("../img/cover.jpg");
+    background-size: cover;
+    background-position: center;
+  }
+}

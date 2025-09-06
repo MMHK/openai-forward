@@ -32,3 +32,7 @@ go.work.sum
 # .vscode/
 /vendor
 /.idea
+/webroot/web/.yarn/
+/webroot/web/.idea/
+/webroot/web/node_modules/
+/webroot/web/yarn.lock
