@@ -1,5 +1,5 @@
 <template>
-  <span @click.prevent="copyText">
+  <span @click.prevent="copyText(text)">
     <i v-if="!copied" class="ri-file-copy-line"></i>
     <i v-if="copied" class="ri-check-line"></i>
   </span>

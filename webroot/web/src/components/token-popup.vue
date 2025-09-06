@@ -2,7 +2,8 @@
   <div id="tokenPanel" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white p-8 max-w-2xl w-full mx-4 shadow-2xl">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Token 管理面板</h2>
+        <h2 class="text-2xl font-bold text-gray-900 flex items-center">Token 管理面板
+          <button @click.prevent="handleLogin" class="px-4 py-2 ml-2 !rounded-button hover:bg-primary bg-primary font-normal text-white text-sm">更換 Token</button></h2>
         <button @click.prevent="closePopup" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700">
           <i class="ri-close-line ri-lg"></i>
         </button>
@@ -30,7 +31,7 @@
             {{ EndPointInfo.token }}
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <span class="text-sm font-medium text-gray-700">端點</span>
             <div class="flex items-center gap-1 text-sm text-gray-600 mt-1 cursor-pointer hover:text-gray-800 group">
@@ -42,6 +43,10 @@
             <span class="text-sm font-medium text-gray-700">到期時間</span>
             <div class="text-sm text-gray-600 mt-1">{{ EndPointInfo.expires }}</div>
           </div>
+          <div v-if="EndPointInfo.version">
+            <span class="text-sm font-medium text-gray-700">API Version</span>
+            <div class="text-sm text-gray-600 mt-1">{{ EndPointInfo.version }} <copy-icon :text="EndPointInfo.version" /></div>
+          </div>
         </div>
         <div>
           <span class="text-sm font-medium text-gray-700 block mb-2">可用模型</span>
@@ -49,7 +54,7 @@
             <div v-for="(model, i) in EndPointInfo.model" :key="`model-${i}`"
                 class="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm cursor-pointer hover:bg-blue-200 transition-colors group">
               <span>{{ model }}</span>
-              <copy-icon text="model" />
+              <copy-icon :text="model" />
             </div>
           </div>
         </div>
@@ -79,6 +84,7 @@ export default {
       endpoint: "https://api.openai.com/v1",
       expires: "2023-09-01 12:00:00",
       token: "sk-proj-abc123def456ghi789jkl012mno345pqr678stu901vwx234yz...",
+      version: "",
       model: [
           "GPT-4",
           "GPT-3.5-turbo",
@@ -88,8 +94,16 @@ export default {
     });
 
     const ModelsInfo = ref({
-      openai: [],
-      azure: [],
+      openai: {
+        endpoint: "",
+        medel: [],
+        version: "",
+      },
+      azure: {
+        endpoint: "",
+        model: [],
+        version: ""
+      },
     });
 
     onMounted(async () => {
@@ -98,8 +112,16 @@ export default {
           httpService.OpenAIModel()
       ])
       ModelsInfo.value = {
-        openai,
-        azure
+        openai: {
+          endpoint: openai.endpoint,
+          model: openai.model,
+          version: openai.version
+        },
+        azure: {
+          endpoint: azure.endpoint,
+          model: azure.model,
+          version: azure.version
+        }
       }
     })
 
@@ -121,7 +143,8 @@ export default {
           endpoint: `${location.protocol}//${location.host}/openai`,
           token: tokenInfo.token,
           expires: tokenInfo.token_expires_at,
-          model: ModelsInfo.value.openai
+          model: ModelsInfo.value.openai.model,
+          version: ModelsInfo.value.openai.version
         }
       }
 
@@ -131,18 +154,24 @@ export default {
           endpoint: `${location.protocol}//${location.host}/azure`,
           token: tokenInfo.token,
           expires: tokenInfo.token_expires_at,
-          model: ModelsInfo.value.azure
+          model: ModelsInfo.value.azure.model,
+          version: ModelsInfo.value.azure.version
         }
       }
     };
 
     setActive({openai: true})
 
+    const handleLogin = () => {
+      httpService.auth();
+    }
+
     return {
       closePopup,
       EndPointInfo,
       activeInfo,
-      setActive
+      setActive,
+      handleLogin,
     }
   }
 }
