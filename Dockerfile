@@ -44,7 +44,7 @@ ENV OPENAI_API_KEY= \
     OIDC_CLIENT_SECRET= \
     OIDC_REDIRECT_URL= \
     OIDC_DEBUG=false \
-    OIDC_SCOPES=openid profile email \
+    OIDC_SCOPES= \
     OIDC_ALLOWED_DOMAINS= \
     PROXY_LOG_LEVEL=info
 
