@@ -4,3 +4,4 @@ vendor
 Dockerfile
 .env
 .env.example
+webroot/web

@@ -88,6 +88,8 @@ func (p *AzureProxy) ListModels() []string {
 
 // 根据模型名称获取部署ID
 func (p *AzureProxy) getDeploymentID(modelName string) string {
+	//logging.Logger.Infof("Getting deployment ID mappings: %+v", p.config.ModelMappings)
+
 	if deploymentID, exists := p.config.ModelMappings[modelName]; exists {
 		return deploymentID
 	}
@@ -103,9 +105,17 @@ func (p *AzureProxy) buildTargetURL(requestPath string, queryParams url.Values, 
 	// 获取部署ID
 	deploymentID := p.getDeploymentID(modelName)
 
+	newPath := ""
+	paths := strings.Split(requestPath, "/openai/deployments/")
+	if len(paths) > 1 {
+		newPath = paths[1]
+		// 正则去掉 newPath 中的 modelID
+		newPath = strings.ReplaceAll(newPath, deploymentID, "")
+	}
+
 	// 构建Azure OpenAI的路径
-	// 格式: /v1/openai/deployments/{deployment-id}/{path}?api-version={api-version}
-	newPath := path.Join("/v1/openai/deployments", deploymentID, requestPath)
+	// 格式: /openai/deployments/{deployment-id}/{path}?api-version={api-version}
+	newPath = path.Join("/openai/deployments", deploymentID, newPath)
 	endpoint.Path = newPath
 
 	// 覆蓋 api-version 查询参数
@@ -132,7 +142,7 @@ func (p *AzureProxy) extractModelName(body []byte) string {
 		return p.config.DefaultModel
 	}
 
-	if req.Model != "" {
+	if req.Model == "" {
 		return p.config.DefaultModel
 	}
 
@@ -150,8 +160,12 @@ func (p *AzureProxy) ProxyRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//logging.Logger.Infof("Request Body: %s", string(body))
+
 	// 从请求体中提取模型名称
 	modelName := p.extractModelName(body)
+
+	//logging.Logger.Infof("Model Name: %s", modelName)
 
 	// 构建目标URL
 	targetURL, err := p.buildTargetURL(requestPath, r.URL.Query(), modelName)
@@ -159,6 +173,8 @@ func (p *AzureProxy) ProxyRequest(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to build target URL: %v", err), http.StatusBadRequest)
 		return
 	}
+
+	//logging.Logger.Infof("Requesting Targetr URL %s", targetURL)
 
 	// 创建新的请求
 	req, err := http.NewRequestWithContext(context.Background(), r.Method, targetURL, bytes.NewReader(body))

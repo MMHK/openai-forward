@@ -50,6 +50,11 @@ func (m *AuthMiddleware) AuthRequired(next http.HandlerFunc) http.HandlerFunc {
 
 		// 从请求头获取API密钥
 		apiKey := ""
+		apiKeyHeader := r.Header.Get("Api-Key")
+		if apiKeyHeader != "" {
+			apiKey = apiKeyHeader
+		}
+
 		// 如果请求头中没有，则从Authorization头获取
 		authHeader := r.Header.Get("Authorization")
 		if authHeader != "" {

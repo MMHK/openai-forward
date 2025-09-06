@@ -151,6 +151,8 @@ func (s *Server) HandleAzureOpenAIProxy(w http.ResponseWriter, r *http.Request) 
 	logging.Logger.Debugf("Received request to azure openai proxy")
 	defer logging.Logger.Debugf("Finished request to azure openai proxy")
 
+	//logging.Logger.Infof("request path: %s", r.URL.Path)
+
 	cfg := proxy.NewAzureConfigFromENV()
 	azureProxy, err := proxy.NewAzureProxy(cfg)
 	if err != nil {
