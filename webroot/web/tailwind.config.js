@@ -8,7 +8,8 @@ module.exports = {
   },
   content: [
     "./public/*.html",
-    "./src/components/**/*.vue",
+    "./src/**/*.{vue,js,ts,jsx,tsx}", // 扩展更多文件类型
+    "./src/components/**/*.{vue,js,ts}", // 确保覆盖所有组件
   ],
   plugins: [
     // remToPx(),

@@ -7,6 +7,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const HTMLInlineCSSWebpackPlugin = require('html-inline-css-webpack-plugin').default;
 const HtmlInlineScriptPlugin = require('html-inline-script-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 IS_DEV_SERVER = process.env.NODE_ENV === 'development';
 
@@ -101,8 +102,8 @@ module.exports = {
         filename: IS_DEV_SERVER ? '[name].css' : '[name].min.css',
       }),
 
-      new HTMLInlineCSSWebpackPlugin(),
-      new HtmlInlineScriptPlugin(),
+      // new HTMLInlineCSSWebpackPlugin(),
+      // new HtmlInlineScriptPlugin(),
     ]),
     new VueLoaderPlugin(),
     new ProgressPlugin(),
@@ -128,6 +129,14 @@ module.exports = {
               discardUnused: false, // 禁用移除未使用的類別（如果需要）
             },
           ],
+        },
+      }),
+      // 添加 JS 压缩插件
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            drop_console: true, // 可选：移除console.log
+          },
         },
       }),
     ],

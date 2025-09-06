@@ -118,7 +118,7 @@ export default {
       if (options.openai) {
         EndPointInfo.value = {
           ...EndPointInfo.value,
-          endpoint: `${location.protocol}//${location.hostname}/openai`,
+          endpoint: `${location.protocol}//${location.host}/openai`,
           token: tokenInfo.token,
           expires: tokenInfo.token_expires_at,
           model: ModelsInfo.value.openai
@@ -128,7 +128,7 @@ export default {
       if (options.azure) {
         EndPointInfo.value = {
           ...EndPointInfo.value,
-          endpoint: `${location.protocol}//${location.hostname}/azure`,
+          endpoint: `${location.protocol}//${location.host}/azure`,
           token: tokenInfo.token,
           expires: tokenInfo.token_expires_at,
           model: ModelsInfo.value.azure
